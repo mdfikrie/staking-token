@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:staking_token/stake_utils.dart';
 import 'package:staking_token/token_utils.dart';
 
@@ -20,6 +21,10 @@ class _HomePageState extends State<HomePage> {
   var maxStake = 0.0;
   var totalStaked = 0.0;
   var apr = 0.0;
+  var totalRewardClaimed = 0.0;
+  var isRewardAvailable = false;
+
+  var isMinning = false;
 
   TextEditingController stake = TextEditingController();
   TextEditingController unstake = TextEditingController();
@@ -55,6 +60,20 @@ class _HomePageState extends State<HomePage> {
         apr = value;
       });
     });
+    stakeUtils.rewardClaimed().then((value) {
+      setState(() {
+        totalRewardClaimed = value;
+      });
+    });
+    stakeUtils.rewardAvailable().then((value) {
+      setState(() {
+        if (value > 0) {
+          isRewardAvailable = true;
+        } else {
+          isRewardAvailable = false;
+        }
+      });
+    });
   }
 
   var isApproved = false;
@@ -73,8 +92,6 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement dispose
     super.dispose();
   }
-
-  var isMinning = false;
 
   @override
   Widget build(BuildContext context) {
@@ -113,20 +130,26 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                       : SizedBox(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          loadAll();
-                        },
-                        icon: Icon(Icons.refresh),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        "My Balance: $myBalance IZR",
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                      Text("${dotenv.env["WALLET_ADDRESS4"]}"),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              loadAll();
+                            },
+                            icon: Icon(Icons.refresh),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            "My Balance: $myBalance IZR",
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -195,26 +218,71 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[400],
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isMinning = true;
-                      });
-                      stakeUtils.claimReward().then((value) {
-                        setState(() {
-                          isMinning = false;
-                        });
-                      });
-                    },
-                    child: Text(
-                      "Claim Reward",
-                      style: TextStyle(
-                        color: Colors.black,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Reward claimed: $totalRewardClaimed IZR",
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
+                      isRewardAvailable == false
+                          ? Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: ElevatedButton(
+                                  onPressed: null,
+                                  child: Text("Reward Pending..")),
+                            )
+                          : Row(
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange[400],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      isMinning = true;
+                                    });
+                                    stakeUtils.claimReward().then((value) {
+                                      setState(() {
+                                        isMinning = false;
+                                      });
+                                    });
+                                  },
+                                  child: Text(
+                                    "Claim Reward",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange[400],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      isMinning = true;
+                                    });
+                                    stakeUtils.restake().then((value) {
+                                      setState(() {
+                                        isMinning = false;
+                                      });
+                                    });
+                                  },
+                                  child: Text(
+                                    "Restake",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ],
                   ),
                 ],
               ),

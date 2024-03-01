@@ -19,7 +19,7 @@ class TokenUtils {
     print("check allowance");
     final contract = await getDeployedContract();
     final ethFunction = contract.function("allowance");
-    final owner = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS"]!);
+    final owner = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS4"]!);
     final spender = EthereumAddress.fromHex(dotenv.env["STAKING_ADDRESS"]!);
     final result = await web3client.call(
       contract: contract,
@@ -35,7 +35,7 @@ class TokenUtils {
   Future<double> getMyBalance() async {
     final contract = await getDeployedContract();
     final ethFunction = contract.function("balanceOf");
-    final address = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS"]!);
+    final address = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS4"]!);
     final result = await web3client.call(
       contract: contract,
       function: ethFunction,
@@ -48,7 +48,7 @@ class TokenUtils {
     print("melakukan approval");
     BigInt bInt = BigInt.from(amount);
     EthPrivateKey privateKey =
-        EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY"]!);
+        EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY4"]!);
     final contract = await getDeployedContract();
     final ethFunction = contract.function("approve");
     final chainId = await web3client.getChainId();

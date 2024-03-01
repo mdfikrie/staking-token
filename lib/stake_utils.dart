@@ -26,7 +26,7 @@ class StakeUtils {
   Future<double> myStaking() async {
     DeployedContract contract = await getDeployedContract();
     final ethFunction = contract.function("balanceOf");
-    final address = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS"]!);
+    final address = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS4"]!);
     final result = await web3client.call(
       contract: contract,
       function: ethFunction,
@@ -47,6 +47,7 @@ class StakeUtils {
   Future<double> apr() async {
     DeployedContract contract = await getDeployedContract();
     final ethFunction = contract.function("getAPR");
+
     final result = await web3client
         .call(contract: contract, function: ethFunction, params: []);
     return result[0].toDouble();
@@ -57,45 +58,39 @@ class StakeUtils {
     final ethFunction = contract.function("getMaxStake");
     final result = await web3client
         .call(contract: contract, function: ethFunction, params: []);
-    return result[0].toDouble() / pow(10, 18);
+    print(result[0]);
+    return result[0].toDouble() / 1000000000000000000;
   }
 
   Future<String> stake(int amount) async {
-    try {
-      print("melakukan stake");
-      var bigInt = BigInt.from(amount);
-      EthPrivateKey privateKey =
-          EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY"]!);
-      DeployedContract contract = await getDeployedContract();
-      final ethFunction = contract.function("stake");
-      final chainId = await web3client.getChainId();
-      final tokenContract =
-          EthereumAddress.fromHex(dotenv.env["TOKEN_ADDRESS"]!);
-      final result = await web3client.sendTransaction(
-        privateKey,
-        Transaction.callContract(
-          contract: contract,
-          function: ethFunction,
-          parameters: [
-            bigInt,
-            tokenContract,
-          ],
-        ),
-        chainId: chainId.toInt(),
-        fetchChainIdFromNetworkId: false,
-      );
-
-      return result;
-    } catch (e) {
-      print(e);
-      throw Exception(e);
-    }
+    print("melakukan stake");
+    var bigInt = BigInt.from(amount);
+    EthPrivateKey privateKey =
+        EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY4"]!);
+    DeployedContract contract = await getDeployedContract();
+    final ethFunction = contract.function("stake");
+    final chainId = await web3client.getChainId();
+    final tokenContract = EthereumAddress.fromHex(dotenv.env["TOKEN_ADDRESS"]!);
+    final result = await web3client.sendTransaction(
+      privateKey,
+      Transaction.callContract(
+        contract: contract,
+        function: ethFunction,
+        parameters: [
+          bigInt,
+          tokenContract,
+        ],
+      ),
+      chainId: chainId.toInt(),
+      fetchChainIdFromNetworkId: false,
+    );
+    return result;
   }
 
   Future<String> unstake(int amount) async {
     print("melakukan unstake");
     BigInt bInt = BigInt.from(amount);
-    final privateKey = EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY"]!);
+    final privateKey = EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY4"]!);
     final contract = await getDeployedContract();
     final ethFunction = contract.function("unstake");
     final chainId = await web3client.getChainId();
@@ -115,7 +110,7 @@ class StakeUtils {
   }
 
   Future<String> claimReward() async {
-    final privateKey = EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY"]!);
+    final privateKey = EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY4"]!);
     final contract = await getDeployedContract();
     final ethFunction = contract.function("claimReward");
     final chainId = await web3client.getChainId();
@@ -129,6 +124,42 @@ class StakeUtils {
       chainId: chainId.toInt(),
     );
     return result;
+  }
+
+  Future<String> restake() async {
+    print("restake");
+    final privateKey = EthPrivateKey.fromHex(dotenv.env["PRIVATE_KEY4"]!);
+    final contract = await getDeployedContract();
+    final ethFunction = contract.function("restake");
+    final chainId = await web3client.getChainId();
+    final result = await web3client.sendTransaction(
+      privateKey,
+      Transaction.callContract(
+        contract: contract,
+        function: ethFunction,
+        parameters: [],
+      ),
+      chainId: chainId.toInt(),
+    );
+    return result;
+  }
+
+  Future<double> rewardAvailable() async {
+    DeployedContract contract = await getDeployedContract();
+    final ethFunction = contract.function("rewardAvailable");
+    final account = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS4"]!);
+    final result = await web3client
+        .call(contract: contract, function: ethFunction, params: [account]);
+    return result[0].toDouble() / pow(10, 18);
+  }
+
+  Future<double> rewardClaimed() async {
+    DeployedContract contract = await getDeployedContract();
+    final ethFunction = contract.function("rewardClaimed");
+    final account = EthereumAddress.fromHex(dotenv.env["WALLET_ADDRESS4"]!);
+    final result = await web3client
+        .call(contract: contract, function: ethFunction, params: [account]);
+    return result[0].toDouble() / pow(10, 18);
   }
 
   Future<DeployedContract> getDeployedContract() async {
